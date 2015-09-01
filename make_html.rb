@@ -1,8 +1,26 @@
 
 
 #第2引数のタグ名と第3引数のテキストからhtmlタグを生成し、書き込む
-def make_tag(tag,text)
-  tag_all = "<" + tag + ">" + text + "</" + tag + ">"
+def make_tag(tag_type,text)
+  case tag_type
+  when "table" then
+    tr_count = ARGV[2].to_i #縦要素数
+    td_count = ARGV[3].to_i #横要素数
+
+    tag = "<table>\n  <tbody>\n"
+    tr_count.times do
+      tag += "    <tr>\n"
+      td_count.times do
+        tag += "      <td>!text!</td>\n"
+      end
+      tag += "    </tr>\n"
+    end
+    tag += "  <tbody>\n</table>\n"
+    puts tag
+  else
+    tag = "<" + tag_type + ">" + text + "</" + tag_type + ">"
+  end
+  add(tag)
 end
 
 def add(tag_text)
@@ -17,7 +35,6 @@ def delete(delete_text)
   File.open('test.html', 'r') do |f|
     f.each_line.with_index(1) do |line,n|
       unless line.include?(delete_text)
-
         out << line
       end
     end
@@ -51,8 +68,7 @@ end
 
 case ARGV[0]
 when "add" then
-  tag_text = make_tag(ARGV[1],ARGV[2])
-  add(tag_text)
+  tag = make_tag(ARGV[1],ARGV[2])
 when "delete" then
   delete(ARGV[1])
 when "delete_last_line" then
