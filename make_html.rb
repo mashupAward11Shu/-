@@ -25,7 +25,9 @@ def make_tag(tag_type,text)
       tag += "  <li>!text!</li>\n"
     end
     tag += "</" + tag_type + ">\n"
-
+  when "a" then
+    tag = "<" + tag_type + " href=\"https://www.google.co.jp\">" + text + "</" + tag_type + ">\n"
+    
   else
     tag = "<" + tag_type + ">" + text + "</" + tag_type + ">\n"
   end
