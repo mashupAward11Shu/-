@@ -75,9 +75,22 @@ def delete_last_line()
   end
 end
 
+def replace_text(text)
+  f=File.open("test.html","r")
+  buffer = f.read()
+
+  #中身を変える
+  buffer_new = buffer.sub("!text!",text)
+  f=File.open("test.html","w")
+  f.write(buffer_new)
+  f.close()
+end
+
 case ARGV[0]
 when "add" then
   tag = make_tag(ARGV[1],ARGV[2])
+when "add_text" then
+  replace_text(ARGV[1])
 when "delete" then
   delete(ARGV[1])
 when "delete_last_line" then
