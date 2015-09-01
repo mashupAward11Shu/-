@@ -7,7 +7,7 @@ def make_tag(tag_type,text)
     tr_count = ARGV[2].to_i #縦要素数
     td_count = ARGV[3].to_i #横要素数
 
-    tag = "<table>\n  <tbody>\n"
+    tag = "<table border=\"1\" rules=\"all\">\n  <tbody>\n"
     tr_count.times do
       tag += "    <tr>\n"
       td_count.times do
@@ -27,7 +27,8 @@ def make_tag(tag_type,text)
     tag += "</" + tag_type + ">\n"
   when "a" then
     tag = "<" + tag_type + " href=\"https://www.google.co.jp\">" + text + "</" + tag_type + ">\n"
-    
+  when "img" then
+    tag = "<img border=\"0\" src=\"daigaku.jpeg\" alt=" + text + ">"
   else
     tag = "<" + tag_type + ">" + text + "</" + tag_type + ">\n"
   end
