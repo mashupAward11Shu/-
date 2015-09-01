@@ -17,6 +17,15 @@ def make_tag(tag_type,text)
     end
     tag += "  <tbody>\n</table>\n"
     puts tag
+
+  when "ol","ul"
+    li_count = ARGV[2].to_i #liタグを作る個数
+    tag = "<" + tag_type + ">\n"
+    li_count.times do
+      tag += "  <li>!text!</li>"
+    end
+    tag += "</" + tag_type + ">\n"
+
   else
     tag = "<" + tag_type + ">" + text + "</" + tag_type + ">"
   end
@@ -25,7 +34,7 @@ end
 
 def add(tag_text)
   File.open("test.html", "a+") do |io|
-    p io.puts tag_text  #文末に改行を入れて書き込む
+    io.puts tag_text  #文末に改行を入れて書き込む
   end
 end
 
@@ -61,7 +70,7 @@ def delete_last_line()
 
   File.open("test.html", "w") do |io|
     out.each do |line|
-      p io.puts line
+      io.puts line
     end
   end
 end
@@ -74,5 +83,5 @@ when "delete" then
 when "delete_last_line" then
   delete_last_line()
 else
-  puts "一致するのもがありません"
+  puts "一致するものがありません"
 end
