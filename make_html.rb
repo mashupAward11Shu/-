@@ -22,12 +22,12 @@ def make_tag(tag_type,text)
     li_count = ARGV[2].to_i #liタグを作る個数
     tag = "<" + tag_type + ">\n"
     li_count.times do
-      tag += "  <li>!text!</li>"
+      tag += "  <li>!text!</li>\n"
     end
     tag += "</" + tag_type + ">\n"
 
   else
-    tag = "<" + tag_type + ">" + text + "</" + tag_type + ">"
+    tag = "<" + tag_type + ">" + text + "</" + tag_type + ">\n"
   end
   add(tag)
 end
