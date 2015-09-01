@@ -71,6 +71,7 @@ def delete_last_line()
     end
   end
 
+
   File.open("test.html", "w") do |io|
     out.each do |line|
       io.puts line
@@ -89,15 +90,37 @@ def replace_text(text)
   f.close()
 end
 
+def undo_html
+  f=File.open("test_old.html","r")
+  buffer = f.read()
+  f=File.open("test.html","w")
+  f.write(buffer)
+  f.close()
+end
+
+def create_old_html()
+  f=File.open("test.html","r")
+  buffer = f.read()
+  f=File.open("test_old.html","w")
+  f.write(buffer)
+  f.close()
+end
+
 case ARGV[0]
 when "add" then
+  create_old_html()
   tag = make_tag(ARGV[1],ARGV[2])
 when "add_text" then
+  create_old_html()
   replace_text(ARGV[1])
 when "delete" then
+  create_old_html()
   delete(ARGV[1])
 when "delete_last_line" then
+  create_old_html()
   delete_last_line()
+when "undo" then
+  undo_html
 else
   puts "一致するものがありません"
 end
