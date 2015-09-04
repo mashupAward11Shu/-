@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AudioBasics.cpp" />
+    <ClCompile Include="AudioPanel.cpp" />
     <ClCompile Include="BodyBasics.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -28,6 +30,8 @@
     <ResourceCompile Include="BodyBasics.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AudioBasics.h" />
+    <ClInclude Include="AudioPanel.h" />
     <ClInclude Include="BodyBasics.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />

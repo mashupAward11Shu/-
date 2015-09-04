@@ -8,18 +8,23 @@
 #include <strsafe.h>
 #include "resource.h"
 #include "BodyBasics.h"
+#include "AudioBasics.h"
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <ios>
 
-#define IS_HORIZON(n) -20 < n && n < 20 ? true : false
-#define IS_VERTICAL(n) -20 < n && n < 20 ? true : false
-#define IS_UP_SLANTING(n) 100 < n && n < 160 ? true : false
-#define IS_DOWN_SLANTING(n) -160 < n && n < -100 ? true : false
+#define IS_HORIZON(n) -10 < n && n < 10 ? true : false
+#define IS_VERTICAL(n) -10 < n && n < 10 ? true : false
+#define IS_UP_SLANTING(n) 100 < n && n < 120 ? true : false
+#define IS_DOWN_SLANTING(n) -120 < n && n < -100 ? true : false
 
 static const float c_JointThickness = 3.0f;
 static const float c_TrackedBoneThickness = 6.0f;
 static const float c_InferredBoneThickness = 1.0f;
 static const float c_HandSize = 30.0f;
+bool isWrite;
+int frameCount;
 
 /// <summary>
 /// Entry point for the application
@@ -38,7 +43,7 @@ int APIENTRY wWinMain(
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-
+	extern float a;
     CBodyBasics application;
     application.Run(hInstance, nShowCmd);
 }
@@ -160,40 +165,45 @@ int CBodyBasics::Run(HINSTANCE hInstance, int nCmdShow)
 /// </summary>
 void CBodyBasics::Update()
 {
-    if (!m_pBodyFrameReader)
-    {
-        return;
-    }
+	if (frameCount % 1000000 == 0) {
+		if (!m_pBodyFrameReader)
+		{
+			return;
+		}
 
-    IBodyFrame* pBodyFrame = NULL;
+		IBodyFrame* pBodyFrame = NULL;
 
-    HRESULT hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
+		HRESULT hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
 
-    if (SUCCEEDED(hr))
-    {
-        INT64 nTime = 0;
+		if (SUCCEEDED(hr))
+		{
+			INT64 nTime = 0;
 
-        hr = pBodyFrame->get_RelativeTime(&nTime);
+			hr = pBodyFrame->get_RelativeTime(&nTime);
 
-        IBody* ppBodies[BODY_COUNT] = {0};
+			IBody* ppBodies[BODY_COUNT] = { 0 };
 
-        if (SUCCEEDED(hr))
-        {
-            hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
-        }
+			if (SUCCEEDED(hr))
+			{
+				hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
+			}
 
-        if (SUCCEEDED(hr))
-        {
-            ProcessBody(nTime, BODY_COUNT, ppBodies);
-        }
+			if (SUCCEEDED(hr))
+			{
+				ProcessBody(nTime, BODY_COUNT, ppBodies);
+			}
 
-        for (int i = 0; i < _countof(ppBodies); ++i)
-        {
-            SafeRelease(ppBodies[i]);
-        }
-    }
+			for (int i = 0; i < _countof(ppBodies); ++i)
+			{
+				SafeRelease(ppBodies[i]);
+			}
 
-    SafeRelease(pBodyFrame);
+
+			SafeRelease(pBodyFrame);
+		}
+	}
+
+	frameCount++;
 }
 
 /// <summary>
@@ -369,6 +379,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
                             DrawHand(leftHandState, jointPoints[JointType_HandLeft]);
                             DrawHand(rightHandState, jointPoints[JointType_HandRight]);
                         }
+						
                     }
                 }
             }
@@ -383,6 +394,53 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
                 DiscardDirect2DResources();
             }
         }
+		FILE *fp;
+		if ((fp = fopen("C:\\Users\\tuchiyama\\Desktop\\SpeechBasics-D2D\\speech.txt", "r")) != NULL) {
+			if ((fp = fopen("body.txt", "r")) != NULL) {
+				std::ifstream ifsa("C:\\Users\\tuchiyama\\Desktop\\SpeechBasics-D2D\\speech.txt");
+				std::string linea;
+				int si = 0;
+				while (std::getline(ifsa, linea)) {
+					si++;
+				}
+				std::ifstream ifsb("body.txt");
+				std::string lineb;
+				int bi = 0;
+				while (std::getline(ifsb, lineb)) {
+					bi++;
+				}
+				if (si > bi) {
+					isWrite = true;
+					std::ofstream ofs("body.txt", std::ios::app);
+					for (int j = 0; j < si - bi; j++) {
+						ofs << "start" << std::endl;
+					}
+				}
+			}
+		}
+		if ((fp = fopen("C:\\Users\\tuchiyama\\Desktop\\SpeechBasics-D2D\\delete.txt", "r")) != NULL) {
+			if ((fp = fopen("delete.txt", "r")) != NULL) {
+				std::ifstream ifsa("C:\\Users\\tuchiyama\\Desktop\\SpeechBasics-D2D\\delete.txt");
+				std::string linea;
+				int si = 0;
+				while (std::getline(ifsa, linea)) {
+					si++;
+				}
+				std::ifstream ifsb("delete.txt");
+				std::string lineb;
+				int bi = 0;
+				while (std::getline(ifsb, lineb)) {
+					bi++;
+				}
+				if (si > bi) {
+					system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb undo");
+					std::ofstream ofs("delete.txt", std::ios::app);
+					for (int j = 0; j < si - bi; j++) {
+						ofs << "delete" << std::endl;
+					}
+				}
+			}
+		}
 
         if (!m_nStartTime)
         {
@@ -398,7 +456,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
             {
                 if (m_nLastCounter)
                 {
-                    m_nFramesSinceUpdate++;
+                    m_nFramesSinceUpdate+=1;
                     fps = m_fFreq * m_nFramesSinceUpdate / double(qpcNow.QuadPart - m_nLastCounter);
                 }
             }
@@ -409,7 +467,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 
         if (SetStatusMessage(szStatusMessage, 1000, false))
         {
-            m_nLastCounter = qpcNow.QuadPart;
+            m_nLastCounter = qpcNow.QuadPart ;
             m_nFramesSinceUpdate = 0;
         }
     }
@@ -577,99 +635,121 @@ void CBodyBasics::DrawBody(const Joint* pJoints, const D2D1_POINT_2F* pJointPoin
             m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointTracked);
         }
     }
-	wchar_t buf[1024];
-	_snwprintf_s(buf, 1024, _TRUNCATE, L"%s %f\n", "aaa", pJointPoints[JointType_ShoulderRight].y - pJointPoints[JointType_HandRight].y);
-	OutputDebugString(buf);
-	float rightShHaX = pJointPoints[JointType_ShoulderRight].x - pJointPoints[JointType_HandRight].x;
-	float rightShHaY = pJointPoints[JointType_ShoulderRight].y - pJointPoints[JointType_HandRight].y;
-	float leftShHaX = pJointPoints[JointType_ShoulderLeft].x - pJointPoints[JointType_HandLeft].x;
-	float leftShHaY = pJointPoints[JointType_ShoulderLeft].y - pJointPoints[JointType_HandLeft].y;
 	
-	float rightShElX = pJointPoints[JointType_ShoulderRight].x - pJointPoints[JointType_ElbowRight].x;
-	float rightShElY = pJointPoints[JointType_ShoulderRight].y - pJointPoints[JointType_ElbowRight].y;
-	float leftShElX = pJointPoints[JointType_ShoulderLeft].x - pJointPoints[JointType_ElbowLeft].x;
-	float leftShElY = pJointPoints[JointType_ShoulderLeft].y - pJointPoints[JointType_ElbowLeft].y;
-
-	float rightElHaX = pJointPoints[JointType_ElbowRight].x - pJointPoints[JointType_HandRight].x;
-	float rightElHaY = pJointPoints[JointType_ElbowRight].y - pJointPoints[JointType_HandRight].y;
-	float leftElHaX = pJointPoints[JointType_ElbowLeft].x - pJointPoints[JointType_HandLeft].x;
-	float leftElHaY = pJointPoints[JointType_ElbowLeft].y - pJointPoints[JointType_HandLeft].y;
-
-	float ShHe = pJointPoints[JointType_SpineShoulder].y - pJointPoints[JointType_Head].y;
-
-	if (IS_UP_SLANTING(rightShHaY) && IS_HORIZON(leftShHaX) && rightShHaX > 0){ //h1
-		OutputDebugString(L"h1\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add h1 h1");
-	}
-
-	if (IS_HORIZON(rightShHaY) && IS_VERTICAL(leftShHaX) && rightShHaX > 0) { //h2
-		OutputDebugString(L"h2\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add h2 h2");
-	}
-
-	if (IS_DOWN_SLANTING(rightShHaY) && IS_VERTICAL(leftShHaX) && rightShHaX > 0) { //h3
-		OutputDebugString(L"h3\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add h3 h3");
-	}
-
-	if (IS_UP_SLANTING(rightShHaY) && rightShHaX > 0 && IS_UP_SLANTING(leftShHaX) && leftShHaX > 0) { //title
-		OutputDebugString(L"title\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add title title");
-	}
-
-	if (IS_DOWN_SLANTING(rightShHaY) && rightShHaX > 0 && IS_DOWN_SLANTING(leftShHaX) && leftShHaX > 0) { //img
-		OutputDebugString(L"img\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add img img");
-	}
-
-	if (IS_UP_SLANTING(rightShHaY) && rightShHaX > 0 && IS_DOWN_SLANTING(leftShHaX) && leftShHaX > 0) { //ul
-		OutputDebugString(L"ul\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add ul ul");
-	}
+	if(frameCount % 10000000 == 0){
+		float rightShHaX = pJointPoints[JointType_ShoulderRight].x - pJointPoints[JointType_HandRight].x;
+		float rightShHaY = pJointPoints[JointType_ShoulderRight].y - pJointPoints[JointType_HandRight].y;
+		float leftShHaX = pJointPoints[JointType_ShoulderLeft].x - pJointPoints[JointType_HandLeft].x;
+		float leftShHaY = pJointPoints[JointType_ShoulderLeft].y - pJointPoints[JointType_HandLeft].y;
 	
-	if (IS_DOWN_SLANTING(rightShHaY) && rightShHaX > 0 && IS_UP_SLANTING(leftShHaX) && leftShHaX > 0) { //ol
-		OutputDebugString(L"ol\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add ol ol");
-	}
+		float rightShElX = pJointPoints[JointType_ShoulderRight].x - pJointPoints[JointType_ElbowRight].x;
+		float rightShElY = pJointPoints[JointType_ShoulderRight].y - pJointPoints[JointType_ElbowRight].y;
+		float leftShElX = pJointPoints[JointType_ShoulderLeft].x - pJointPoints[JointType_ElbowLeft].x;
+		float leftShElY = pJointPoints[JointType_ShoulderLeft].y - pJointPoints[JointType_ElbowLeft].y;
 
-	if (IS_VERTICAL(rightShElY) && rightShElY > 0 &&IS_HORIZON(rightElHaX) && IS_VERTICAL(leftShElY) && leftShElY > 0 && IS_HORIZON(leftElHaX)) { //font
-		OutputDebugString(L"font\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add font font");
-	}
-	
-	if (IS_VERTICAL(leftShElX) && IS_HORIZON(leftElHaY) && IS_VERTICAL(rightShElX) && IS_HORIZON(rightElHaY)) { //u
-		OutputDebugString(L"u\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add u u");
-	}
-	
-	if (IS_HORIZON(leftShElY) && IS_VERTICAL(leftElHaX) && leftElHaY > 0 && IS_HORIZON(rightShElY) && IS_VERTICAL(rightElHaX) && rightElHaY < 0) { //B
-		OutputDebugString(L"B\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add B B");
-	}
-	
-	if (IS_UP_SLANTING(leftShHaX) && IS_VERTICAL(rightShHaX)) { //i
-		OutputDebugString(L"i\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add i i");
-	}
-	
-	if (IS_VERTICAL(leftShHaX) && IS_HORIZON(rightShHaY) && !IS_VERTICAL(ShHe)) { //p
-		OutputDebugString(L"p\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add p p");
-	}
+		float rightElHaX = pJointPoints[JointType_ElbowRight].x - pJointPoints[JointType_HandRight].x;
+		float rightElHaY = pJointPoints[JointType_ElbowRight].y - pJointPoints[JointType_HandRight].y;
+		float leftElHaX = pJointPoints[JointType_ElbowLeft].x - pJointPoints[JointType_HandLeft].x;
+		float leftElHaY = pJointPoints[JointType_ElbowLeft].y - pJointPoints[JointType_HandLeft].y;
 
-	if (IS_HORIZON(leftShHaY) && IS_HORIZON(rightShHaY) && !IS_VERTICAL(ShHe)) { //table
-		OutputDebugString(L"table\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add table table");
-	}
-	
-	if (IS_VERTICAL(leftShHaX) && IS_HORIZON(rightShHaY) && !IS_VERTICAL(ShHe)) { //td
-		OutputDebugString(L"td\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add td td");
-	}
+		float ShHe = pJointPoints[JointType_SpineShoulder].x - pJointPoints[JointType_Head].x;
 
-	if (IS_HORIZON(leftShHaY) && IS_VERTICAL(rightShHaX) && !IS_VERTICAL(ShHe)) { //tr
-		OutputDebugString(L"tr\n");
-		system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add tr tr");
+		IDWriteTextFormat* m_pTextFormat;
+		ID2D1SolidColorBrush *m_pBlackBrush;
+		m_pRenderTarget->CreateSolidColorBrush(
+			D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+			&m_pBlackBrush
+			);
+		//m_pTextFormat = new CD2DTextFormat(GetRenderTarget(), _T("Arial"), 96);
+		//m_pRenderTarget->DrawTextW(L"hello",
+		//	ARRAYSIZE("hello") - 1,
+		//	m_pTextFormat,
+		//	D2D1::RectF(0, 0, 500, 500),
+		//	m_pBlackBrush);
+		wchar_t buf[1024];
+		if (isWrite) {
+			_snwprintf_s(buf, 1024, _TRUNCATE, L"%d\n", 1);
+		}
+		else {
+			_snwprintf_s(buf, 1024, _TRUNCATE, L"%d\n", 0);
+		}
+		OutputDebugString(buf);
+		isWrite = true;
+		if (isWrite) {
+			if (IS_UP_SLANTING(rightShHaY) && IS_HORIZON(leftShHaX)) { //h1
+				OutputDebugString(L"h1\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add h1 h1");
+			}
+
+			if (IS_HORIZON(rightShHaY) && IS_VERTICAL(leftShHaX) ) { //h2
+				OutputDebugString(L"h2\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add h2 h2");
+			}
+
+			if (IS_DOWN_SLANTING(rightShHaY) && IS_VERTICAL(leftShHaX) ) { //h3
+				OutputDebugString(L"h3\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add h3 h3");
+			}
+
+			if (IS_UP_SLANTING(rightShHaY) &&  IS_UP_SLANTING(leftShHaX) ) { //title
+				OutputDebugString(L"title\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add title title");
+			}
+
+			if (IS_DOWN_SLANTING(rightShHaY) && IS_DOWN_SLANTING(leftShHaX)) { //img
+				OutputDebugString(L"img\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add img img");
+			}
+
+			if (IS_UP_SLANTING(rightShHaY) &&  IS_DOWN_SLANTING(leftShHaX)) { //ul
+				OutputDebugString(L"ul\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add ul 3");
+			}
+
+			if (IS_DOWN_SLANTING(rightShHaY) && IS_UP_SLANTING(leftShHaX)) { //ol
+				OutputDebugString(L"ol\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add ol 3");
+			}
+
+			//if (IS_VERTICAL(rightShElY) && rightShElY > 0 && IS_HORIZON(rightElHaX) && IS_VERTICAL(leftShElY) && leftShElY > 0 && IS_HORIZON(leftElHaX)) { //font
+			//	OutputDebugString(L"font\n");
+			//	system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add font font");
+			//}
+
+			//if (IS_VERTICAL(leftShElX) && IS_HORIZON(leftElHaY) && IS_VERTICAL(rightShElX) && IS_HORIZON(rightElHaY)) { //u
+			//	OutputDebugString(L"u\n");
+			//	system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add u u");
+			//}
+
+			//if (IS_HORIZON(leftShElY) && IS_VERTICAL(leftElHaX) && leftElHaY > 0 && IS_HORIZON(rightShElY) && IS_VERTICAL(rightElHaX) && rightElHaY < 0) { //B
+			//	OutputDebugString(L"B\n");
+			//	system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add B B");
+			//}
+
+			//if (IS_UP_SLANTING(leftShHaX) && IS_VERTICAL(rightShHaX)) { //i
+			//	OutputDebugString(L"i\n");
+			//	system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add i i");
+			//}
+
+			if (IS_HORIZON(leftShHaY) && IS_HORIZON(rightShHaY) && !IS_VERTICAL(leftShHaX) && !IS_VERTICAL(rightShHaX)) { //p
+				OutputDebugString(L"p\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add p p");
+			}
+
+			if (IS_VERTICAL(rightShElY) && IS_HORIZON(rightElHaX) && IS_VERTICAL(leftShElY) && IS_HORIZON(leftElHaX)) { //table
+				OutputDebugString(L"table\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add table 3 3 ");
+			}
+
+			//if (IS_HORIZON(leftShHaY) && IS_VERTICAL(rightShHaX) && !IS_VERTICAL(ShHe)) { //tr
+			//	OutputDebugString(L"tr\n");
+			//	system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb add tr tr");
+			//}
+			if (!IS_VERTICAL(ShHe)&& IS_VERTICAL(rightShHaX) && IS_VERTICAL(leftShHaX) && IS_HORIZON(rightElHaX) && IS_HORIZON(leftElHaX)) {
+				OutputDebugString(L"undo\n");
+				system("ruby C:\\Users\\tuchiyama\\Documents\\odorimming\\make_html.rb undo");
+			}
+		}
 	}
 }
 

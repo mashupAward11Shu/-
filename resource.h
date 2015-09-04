@@ -12,6 +12,7 @@
 #define IDD_APP                         100
 #define IDC_VIDEOVIEW                   1000
 #define IDC_STATUS                      1001
+#define IDC_AUDIOVIEW                   1003
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

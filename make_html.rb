@@ -1,5 +1,4 @@
 
-
 #第2引数のタグ名と第3引数のテキストからhtmlタグを生成し、書き込む
 def make_tag(tag_type,text)
   case tag_type
